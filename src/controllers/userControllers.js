@@ -11,17 +11,26 @@ const getUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, password } = req.body;
 
-  userService.createUser(name, email, (err, result) => {
-    if (err) {
-      console.log("Error creating user:", err);
-      return res.status(500).json({ error: "Error creating user" });
+  userService.createUser(name, email, password, (err, result) => {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({
+        error: "Email already exists",
+      });
     }
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", userId: result.insertId });
+    if (err) {
+      console.log("Error creating user:", err);
+      return res.status(500).json({
+        error: "Error creating user",
+      });
+    }
+
+    res.status(201).json({
+      message: "User created successfully",
+      userId: result.insertId,
+    });
   });
 };
 

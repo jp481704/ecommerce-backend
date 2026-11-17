@@ -6,9 +6,9 @@ const getAllUsers = (callback) => {
 };
 
 
-const createUser = (name,email,callback)=>{
-    const query = "INSERT INTO USERS (name,email) VALUES (?,?)";
-    db.query(query,[name,email],callback);
+const createUser = (name,email,password,callback)=>{
+    const query = "INSERT INTO USERS (name,email,password) VALUES (?,?,?)";
+    db.query(query,[name,email,password],callback);
 }
 
 module.exports = {
