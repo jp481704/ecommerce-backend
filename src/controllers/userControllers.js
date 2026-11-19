@@ -44,7 +44,7 @@ const createUser = (req, res) => {
 const loginUser = (req, res) => {
   const { email, password } = req.body;
 
-  userService.loginUser(email, password, (err, user) => {
+  userService.loginUser(email, password, (err, result) => {
     if (err) {
       return res.status(401).json({
         error: err,
@@ -53,11 +53,8 @@ const loginUser = (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+      user: result.user,
+      token: result.token,
     });
   });
 };

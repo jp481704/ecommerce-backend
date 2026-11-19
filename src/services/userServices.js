@@ -1,36 +1,9 @@
 const userRepository = require("../repositories/userRepository.js");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const getAllUsers = (callback) => {
   userRepository.getAllUsers(callback);
-};
-
-const loginUser = (email, password, callback) => {
-  if (!email || !password) {
-    return callback("Email and password are required", null);
-  }
-
-  userRepository.loginUser(email, (err, result) => {
-    if (err) {
-      return callback("Error fetching user", null);
-    }
-
-    if (result.length === 0) {
-      return callback("User not found", null);
-    }
-
-    bcrypt.compare(password, result[0].password, (err, isMatch) => {
-      if (err) {
-        return callback("Error comparing passwords", null);
-      }
-
-      if (!isMatch) {
-        return callback("Incorrect password", null);
-      }
-
-      callback(null, result[0]);
-    });
-  });
 };
 
 const createUser = (name, email, password, callback) => {
@@ -58,6 +31,49 @@ const createUser = (name, email, password, callback) => {
     }
 
     userRepository.createUser(name, email, hashedPassword, callback);
+  });
+};
+
+const loginUser = (email, password, callback) => {
+  if (!email || !password) {
+    return callback("Email and password are required", null);
+  }
+
+  email = email.trim();
+  password = password.trim();
+
+  if (!email || !password) {
+    return callback("Email and password cannot be empty", null);
+  }
+
+  userRepository.loginUser(email, (err, result) => {
+    if (err) {
+      return callback("Error fetching user", null);
+    }
+
+    if (result.length === 0) {
+      return callback("Invalid email or password", null);
+    }
+
+    const user = result[0];
+
+    bcrypt.compare(password, user.password, (err, isMatch) => {
+      if (err) {
+        return callback("Error comparing passwords", null);
+      }
+
+      if (!isMatch) {
+        return callback("Invalid email or password", null);
+      }
+
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" },
+      );
+
+      callback(null, { user, token });
+    });
   });
 };
 
